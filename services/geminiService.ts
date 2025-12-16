@@ -1,7 +1,18 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { MenuItem, Ingredient } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Safely access API key with fallback to prevent crashes
+const getApiKey = () => {
+  try {
+    return process.env.API_KEY || '';
+  } catch (e) {
+    console.warn("process.env is not defined");
+    return '';
+  }
+};
+
+const apiKey = getApiKey();
+const ai = new GoogleGenAI({ apiKey });
 
 // Interface for AI Recipe Response
 export interface AiRecipeResult {
@@ -15,8 +26,9 @@ export interface AiRecipeResult {
 }
 
 export const generateRecipe = async (dishName: string): Promise<AiRecipeResult | null> => {
-    if (!process.env.API_KEY) {
-        console.error("No API Key");
+    if (!apiKey) {
+        console.warn("No API Key found. AI features will be disabled.");
+        alert("ฟีเจอร์ AI ไม่ทำงานเนื่องจากไม่พบ API Key");
         return null;
     }
 
@@ -69,7 +81,7 @@ export const generateRecipe = async (dishName: string): Promise<AiRecipeResult |
 }
 
 export const generateMenuDescription = async (dishName: string, ingredients: string[]): Promise<string> => {
-  if (!process.env.API_KEY) return "กรุณาใส่ API Key เพื่อใช้งานฟีเจอร์ AI";
+  if (!apiKey) return "กรุณาใส่ API Key เพื่อใช้งานฟีเจอร์ AI";
 
   try {
     const prompt = `
@@ -94,7 +106,7 @@ export const generateMenuDescription = async (dishName: string, ingredients: str
 };
 
 export const analyzeProfitability = async (menuItem: MenuItem): Promise<string> => {
-   if (!process.env.API_KEY) return "กรุณาใส่ API Key เพื่อใช้งานฟีเจอร์ AI";
+   if (!apiKey) return "กรุณาใส่ API Key เพื่อใช้งานฟีเจอร์ AI";
 
    const margin = ((menuItem.price - menuItem.totalCost) / menuItem.price) * 100;
 
